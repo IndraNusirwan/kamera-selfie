@@ -5,4 +5,20 @@
 <video id="video" autoplay playsinline muted hidden></video><img id="photo" alt="Pratinjau selfie" hidden><canvas id="canvas" hidden></canvas>
 <button id="start">Aktifkan Kamera</button><button id="take" hidden>Ambil Foto</button><button id="stop" hidden>Tutup Kamera</button><button id="use" hidden>Gunakan Foto &amp; Kembali</button><button id="cancel">Batal &amp; Kembali</button><a id="download" download="selfie.jpg" hidden>Unduh Foto</a><a id="return" hidden>Kembali ke Formulir</a>
 <p><small>Jika pemulihan gagal atau sesi kamera kedaluwarsa, unduh foto dan unggah kembali dari formulir. Kamera ini tidak melakukan pencocokan wajah atau uji liveness.</small></p></main>
-<script src="config.js"></script><script src="api-client.js"></script><script src="return-camera.js"></script></body></html>
+<script src="config.js?v=20261016b"></script><script src="api-client.js?v=20261016b"></script><script src="return-camera.js"></script>
+<script>
+const checkConnectionButton = document.createElement('button');
+checkConnectionButton.type = 'button';
+checkConnectionButton.textContent = 'Periksa Koneksi (tanpa OTP)';
+document.querySelector('main').appendChild(checkConnectionButton);
+checkConnectionButton.onclick = async () => {
+  checkConnectionButton.disabled = true;
+  const output = document.getElementById('status');
+  output.textContent = 'Memeriksa koneksi ke Apps Script…';
+  try {
+    await window.appApiCall('ping');
+    output.textContent = 'Apps Script terhubung. Silakan lanjutkan foto. Tidak ada OTP yang dikirim.';
+  } catch (error) { output.textContent = error.message; }
+  finally { checkConnectionButton.disabled = false; }
+};
+</script></body></html>

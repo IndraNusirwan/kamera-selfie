@@ -17,7 +17,7 @@ async function apiRequest(action, args) {
       body:JSON.stringify({protocol:'peminjaman-api-v1',requestId,action,args}),
       signal:controller.signal
     });
-    if (!response.ok) throw new Error('API_HTTP');
+    if (!response.ok) throw new Error('API_HTTP_' + response.status);
     let envelope;
     try { envelope = await response.json(); } catch (_) { throw new Error('API_RESPONSE'); }
     if (!envelope || envelope.protocol !== 'peminjaman-api-v1' || envelope.requestId !== requestId ||
@@ -30,7 +30,11 @@ async function apiRequest(action, args) {
   } catch (error) {
     if (error.applicationError) throw error;
     apiCheckedAt = 0;
-    if (action === 'ping') throw new Error('Belum terhubung ke Apps Script. Pastikan Api.gs sudah dipasang, deployment versi baru dapat diakses Anyone, dan URL config.js benar. OTP belum dikirim.');
+    const detail = error.name === 'AbortError' ? 'TIMEOUT' :
+      /^API_HTTP_\d+$/.test(error.message || '') ? error.message :
+      error.message === 'API_RESPONSE' ? 'RESPONS_BUKAN_API_ATAU_VERSI_TIDAK_SESUAI' :
+      error.name === 'TypeError' ? 'JARINGAN_ATAU_CORS' : 'KONEKSI_GAGAL';
+    if (action === 'ping') throw new Error('Belum terhubung ke Apps Script [' + detail + '; v20261016b]. OTP belum dikirim. Coba Periksa Koneksi lalu kirim kode dalam kurung ini.');
     if (action === 'saveSelfieHandoff') throw new Error('Konfirmasi penyimpanan foto belum diterima. Periksa koneksi, lalu coba Gunakan Foto & Kembali lagi. Tiket yang sama tidak membuat penyimpanan ganda.');
     throw new Error('Konfirmasi server belum diterima. Permintaan mungkin sudah diproses; jangan langsung mengulang. Untuk OTP, periksa pesan masuk dan tunggu minimal 60 detik.');
   } finally { clearTimeout(timer); }
